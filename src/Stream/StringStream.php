@@ -1,6 +1,6 @@
 <?php
 /*
- * This file is part of the Alpari Kafka client.
+ * This file is part of the Alpari BinaryProtocol library.
  *
  * (c) Alpari
  *
@@ -9,7 +9,6 @@
  */
 
 declare (strict_types=1);
-
 
 namespace Alpari\BinaryProtocol\Stream;
 
