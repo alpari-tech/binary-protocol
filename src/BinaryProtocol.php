@@ -105,10 +105,11 @@ class BinaryProtocol
                 $schemeKey   = Structure::class;
                 $schemeValue = ['class' => $schemeValue];
             }
-            $isAssoc    = !is_numeric($schemeKey);
-            $fieldClass = $isAssoc ? $schemeKey : $schemeValue;
-            $fieldArgs  = $isAssoc ? $schemeValue : [];
-            if (!class_exists($fieldClass) || !is_subclass_of($fieldClass, FieldInterface::class, true)) {
+            $isAssoc     = !is_numeric($schemeKey);
+            $fieldClass  = $isAssoc ? $schemeKey : $schemeValue;
+            $fieldArgs   = $isAssoc ? $schemeValue : [];
+            $isClassName = is_string($fieldClass) && class_exists($fieldClass);
+            if (!$isClassName || !is_subclass_of($fieldClass, FieldInterface::class, true)) {
                 throw new \InvalidArgumentException("Received unknown scheme class {$fieldClass} at {$path}");
             }
             /** @var FieldInterface $fieldInstance */
