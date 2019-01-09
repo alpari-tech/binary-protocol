@@ -45,7 +45,7 @@ final class UInt8 extends AbstractField
      */
     public function write($value, StreamInterface $stream, string $fieldPath): void
     {
-        $stream->write(pack('С', $value));
+        $stream->write(pack('C', $value));
     }
 
     /**
@@ -64,6 +64,6 @@ final class UInt8 extends AbstractField
      */
     public function getFormat(): ?string
     {
-        return 'С';
+        return 'C';
     }
 }

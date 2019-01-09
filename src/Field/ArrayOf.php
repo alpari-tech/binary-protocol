@@ -14,6 +14,7 @@ namespace Alpari\BinaryProtocol\Field;
 
 use Alpari\BinaryProtocol\BinaryProtocol;
 use Alpari\BinaryProtocol\Stream\StreamInterface;
+use InvalidArgumentException;
 
 /**
  * Represents a sequence of objects of a given type T.
@@ -64,7 +65,7 @@ final class ArrayOf extends AbstractField
     public function __construct(BinaryProtocol $protocol, array $options)
     {
         if (!isset($options['item'])) {
-            throw new \InvalidArgumentException('ArrayOf expects the `item` field to be specified');
+            throw new InvalidArgumentException('ArrayOf expects the `item` field to be specified');
         }
         parent::__construct($protocol, $options);
     }
@@ -86,7 +87,7 @@ final class ArrayOf extends AbstractField
                 $item = $this->protocol->read($this->item, $stream, $fieldPath . "[$index]");
                 if (isset($this->key)) {
                     if (!is_object($item)) {
-                        throw new \InvalidArgumentException('Associative array can be applied to DTOs only');
+                        throw new InvalidArgumentException('Associative array can be applied to DTOs only');
                     }
                     $keyValue = $item->{$this->key};
                     $value[$keyValue] = $item;
@@ -97,7 +98,7 @@ final class ArrayOf extends AbstractField
         } elseif ($itemCount === -1 && $this->nullable) {
             $value = null;
         } else {
-            throw new \InvalidArgumentException('Received negative array length: ' . $itemCount . " for {$fieldPath}");
+            throw new InvalidArgumentException('Received negative array length: ' . $itemCount . " for {$fieldPath}");
         }
 
         return $value;
@@ -120,7 +121,7 @@ final class ArrayOf extends AbstractField
         } elseif (is_array($value)) {
             $itemCount = count($value);
         } else {
-            throw new \InvalidArgumentException('Invalid value received for the array');
+            throw new InvalidArgumentException('Invalid value received for the array');
         }
         $this->protocol->write($itemCount, $this->size, $stream, $fieldPath . '[size]');
         foreach ($value as $index => $item) {
@@ -139,7 +140,7 @@ final class ArrayOf extends AbstractField
         } elseif (is_array($value)) {
             $itemCount = count($value);
         } else {
-            throw new \InvalidArgumentException('Invalid value received for the array');
+            throw new InvalidArgumentException('Invalid value received for the array');
         }
         // TODO: use field paths
         $totalSize = $this->protocol->sizeOf($itemCount, $this->size, $fieldPath . '[size]');

@@ -13,6 +13,7 @@ declare (strict_types=1);
 namespace Alpari\BinaryProtocol\Field;
 
 use Alpari\BinaryProtocol\Stream\StreamInterface;
+use InvalidArgumentException;
 
 /**
  * Represents an integer between -2^31 and 2^31-1 inclusive encoded with variable length.
@@ -66,10 +67,9 @@ class VarInt extends AbstractField
      */
     public function getSize($value = null, string $fieldPath = ''): int
     {
-        if (!isset($value)) {
-            throw new \UnexpectedValueException('VarInt size depends on value itself');
+        if (!isset($value) || !is_integer($value)) {
+            throw new InvalidArgumentException('VarInt size depends on value itself and it should be int type');
         }
-        $value = ($value << 1) ^ ($value >> 31);
         $bytes = 1;
         while (($value & 0xffffff80) !== 0) {
             ++$bytes;

@@ -13,6 +13,7 @@ declare (strict_types=1);
 namespace Alpari\BinaryProtocol\Field;
 
 use Alpari\BinaryProtocol\Stream\StreamInterface;
+use InvalidArgumentException;
 
 /**
  * Represents an integer between -2^31 and 2^31-1 inclusive encoded with variable length.
@@ -52,6 +53,10 @@ final class VarIntZigZag extends VarInt
      */
     public function getSize($value = null, string $fieldPath = ''): int
     {
+        if (!isset($value) || !is_integer($value)) {
+            throw new InvalidArgumentException('VarIntZigZag size depends on value itself and it should be int type');
+        }
+
         // ZigZag-encoding
         $value = ($value << 1) ^ ($value >> 31);
 

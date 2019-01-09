@@ -13,6 +13,7 @@ declare (strict_types=1);
 namespace Alpari\BinaryProtocol\Field;
 
 use Alpari\BinaryProtocol\Stream\StreamInterface;
+use InvalidArgumentException;
 
 /**
  * Represents an integer between -2^63 and 2^63-1 inclusive encoded with variable length.
@@ -42,7 +43,7 @@ final class VarLongZigZag extends VarLong
     public function write($value, StreamInterface $stream, string $fieldPath): void
     {
         // ZigZag-encoding
-        $value = ($value << 1) ^ ($value >> 63);
+        $value = ($value << 1) ^ ($value >> 62);
 
         parent::write($value, $stream, $fieldPath);
     }
@@ -52,8 +53,12 @@ final class VarLongZigZag extends VarLong
      */
     public function getSize($value = null, string $fieldPath = ''): int
     {
+        if (!isset($value) || !is_integer($value)) {
+            throw new InvalidArgumentException('VarLongZigZag size depends on value itself and it should be int type');
+        }
+
         // ZigZag-encoding
-        $value = ($value << 1) ^ ($value >> 63);
+        $value = ($value << 1) ^ ($value >> 62);
 
         return parent::getSize($value);
     }

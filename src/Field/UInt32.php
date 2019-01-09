@@ -33,7 +33,7 @@ final class UInt32 extends AbstractField
     {
         $packet = $stream->read(4);
 
-        return unpack('LUINT32', $packet)['UINT16'];
+        return unpack('LUINT32', $packet)['UINT32'];
     }
 
     /**

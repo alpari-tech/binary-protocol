@@ -15,6 +15,7 @@ namespace Alpari\BinaryProtocol\Field;
 use Alpari\BinaryProtocol\BinaryProtocol;
 use Alpari\BinaryProtocol\StructureInterface;
 use Alpari\BinaryProtocol\Stream\StreamInterface;
+use InvalidArgumentException;
 use ReflectionClass;
 
 /**
@@ -60,11 +61,11 @@ final class Structure extends AbstractField
     public function __construct(BinaryProtocol $protocol, array $options)
     {
         if (!isset($options['class'])) {
-            throw new \InvalidArgumentException('Structure expects the `class` field to be specified');
+            throw new InvalidArgumentException('Structure expects the `class` field to be specified');
         }
         $className = $options['class'];
         if (!is_subclass_of($className, StructureInterface::class, true)) {
-            throw new \InvalidArgumentException('Structure should implement `StructInterface`');
+            throw new InvalidArgumentException('Structure should implement `StructureInterface`');
         }
         parent::__construct($protocol, $options);
 

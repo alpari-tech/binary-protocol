@@ -15,6 +15,7 @@ namespace Alpari\BinaryProtocol\Field;
 use Alpari\BinaryProtocol\BinaryProtocol;
 use Alpari\BinaryProtocol\Stream\StreamInterface;
 use Alpari\BinaryProtocol\Stream\StringStream;
+use InvalidArgumentException;
 
 /**
  * Represents a raw sequence of bytes or characters (string).
@@ -72,7 +73,7 @@ class BinaryString extends AbstractField
         } elseif ($stringLength === -1 && $this->nullable) {
             $value = null;
         } else {
-            throw new \InvalidArgumentException('Received negative string length: ' . $stringLength);
+            throw new InvalidArgumentException('Received negative string length: ' . $stringLength);
         }
         // Binary buffer could contains nested envelope, which we can unpack
         if ($value !== null && $this->envelope !== null) {
@@ -104,7 +105,7 @@ class BinaryString extends AbstractField
         } elseif (is_string($value)) {
             $stringLength = strlen($value);
         } else {
-            throw new \InvalidArgumentException('Invalid value received for the string');
+            throw new InvalidArgumentException('Invalid value received for the string');
         }
 
         $this->protocol->write($stringLength, $this->size, $stream, $fieldPath.'[size]');
@@ -130,7 +131,7 @@ class BinaryString extends AbstractField
         } elseif (is_string($value)) {
             $stringLength = strlen($value);
         } else {
-            throw new \InvalidArgumentException('Invalid value received for the string');
+            throw new InvalidArgumentException('Invalid value received for the string');
         }
 
         $totalSize  = $this->protocol->sizeOf($stringLength, $this->size, $fieldPath . '[size]');

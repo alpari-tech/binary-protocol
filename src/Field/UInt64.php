@@ -33,7 +33,7 @@ final class UInt64 extends AbstractField
     {
         $packet = $stream->read(8);
 
-        return unpack('QUINT64', $packet)['QINT64'];
+        return unpack('QUINT64', $packet)['UINT64'];
     }
 
     /**
