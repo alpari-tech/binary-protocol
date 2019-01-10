@@ -1,13 +1,14 @@
 <?php
-declare(strict_types = 1);
 /*
- * Go! AOP framework
+ * This file is part of the Alpari BinaryProtocol library.
  *
- * @copyright Copyright 2012, Lisachenko Alexander <lisachenko.it@gmail.com>
+ * (c) Alpari
  *
- * This source file is subject to the license that is bundled
- * with this source code in the file LICENSE.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
+
+declare (strict_types=1);
 ini_set('display_errors', 'on');
 
 include __DIR__ . '/../vendor/autoload.php';
