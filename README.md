@@ -15,22 +15,22 @@ Installation
 composer require alpari/kafka-client
 ```
  
-FieldInterface API
+TypeInterface API
 ------------
-The FieldInterface API describes low-level representation of data, for example Int8, Int16, String, etc...
+The TypeInterface API describes low-level representation of data, for example Int8, Int16, String, etc...
 
 ```php
 /**
- * Declares the single binary field that can be packed/unpacked from/to binary stream
+ * Declares the type that can be packed/unpacked from/to binary stream
  */
-interface FieldInterface
+interface TypeInterface
 {
 
     /**
      * Reads a value of field from the stream
      *
      * @param StreamInterface $stream    Instance of stream to read value from
-     * @param string          $fieldPath Path to the field to simplify debug of complex hierarchial structures
+     * @param string          $fieldPath Path to the field to simplify debug of complex hierarchical structures
      *
      * @return mixed
      */
@@ -39,9 +39,9 @@ interface FieldInterface
     /**
      * Writes the value of field to the given stream
      *
-     * @param mixed           $value     Field value to write
+     * @param mixed           $value     Value to write
      * @param StreamInterface $stream    Instance of stream to write to
-     * @param string          $fieldPath Path to the field to simplify debug of complex hierarchial structures
+     * @param string          $fieldPath Path to the field to simplify debug of complex hierarchical structures
      *
      * @return void
      */
@@ -50,15 +50,15 @@ interface FieldInterface
     /**
      * Calculates the size in bytes of single item for given value
      *
-     * @param mixed  $value     Field value to write
-     * @param string $fieldPath Path to the field to simplify debug of complex hierarchial structures
+     * @param mixed  $value     Value to write
+     * @param string $fieldPath Path to the field to simplify debug of complex hierarchical structures
      *
      * @return int
      */
     public function getSize($value = null, string $fieldPath =''): int;
 }
 ``` 
-Each data type should be added as a separate class implementing `FieldInterface` contract with logic of packing and 
+Each data type should be added as a separate class implementing `TypeInterface` contract with logic of packing and
 unpacking data to/from `StreamInterface`
 
 As you can see there are two main methods which are `read()` and `write()` that are used for reading and writing binary 
@@ -70,25 +70,25 @@ value and for more complex structures like arrays or objects it should be able t
 Method `getFormat()` is declared in the interface, but it is not used right now. It can be used later for fixed-size 
 arrays or structures to speed up parsing, for example, array of Int16. 
 
-StructureInterface API
+SchemeDefinitionInterface API
 ------------
 
-`StructureInterface` helps to use complex binary data structures in your application. Each complex type from the 
-binary protocol should be represented as a DTO (Plain PHP object with public properties) implementing the 
-`StructureInterface` and it's method `getScheme()` which is declared as following.
+`SchemeDefinitionInterface` helps to use complex binary data structures in your application. Each complex type from the
+binary protocol should be represented as a separate DTO (Plain PHP object with properties) implementing the
+`SchemeDefinitionInterface` and it's method `getDefinition()`.
 
 ```php
 <?php
 
 /**
- * StructureInterface represents classes that can be encoded as packed structure
+ * SchemeDefinitionInterface represents a class that holds definition of his scheme
  */
-interface StructureInterface
+interface SchemeDefinitionInterface
 {
     /**
-     * Returns definition of binary packet for the class or object
+     * Returns the definition of class scheme as an associative array if form of [property => type]
      */
-    public static function getScheme(): array;
+    public static function getDefinition(): array;
 }
 ```
 
@@ -96,13 +96,13 @@ Here is an example of definition of binary packet that is used for Kafka client:
 ```php
 <?php
 
-use Alpari\BinaryProtocol\Field\Int16BE as Int16;
-use Alpari\BinaryProtocol\StructureInterface;
+use Alpari\BinaryProtocol\Type\Int16BE as Int16;
+use Alpari\BinaryProtocol\SchemeDefinitionInterface;
 
 /**
  * ApiVersions response data
  */
-class ApiVersionsResponseMetadata implements StructureInterface
+class ApiVersionsResponseMetadata implements SchemeDefinitionInterface
 {
     /**
      * Numerical code of API
@@ -128,7 +128,7 @@ class ApiVersionsResponseMetadata implements StructureInterface
     /**
      * @inheritdoc
      */
-    public static function getScheme(): array
+    public static function getDefinition(): array
     {
         return [
             'apiKey'     => [Int16::class],
@@ -138,15 +138,15 @@ class ApiVersionsResponseMetadata implements StructureInterface
     }
 }
 ```
-To add the binary scheme to your existing class, just add "class key" => "type" mapping as a scheme definition. Please
- note that value is declared as an array in the `getScheme()` method. This format is used to define additional 
- arguments for complex types.
+To add the definition to your existing class, just add "property" => "type" mapping as a scheme definition. Please
+note that each property type is declared as an array in the `getDefinition()` method. This format is used to define
+additional arguments for complex types.
  
 `ArrayOf` type
 ---------------
  
- `ArrayOf` field is used to declare the sequence of repeated binary items (integers, strings or objects). It has 
- several options that can be applied as associative array values.
+ `ArrayOf` type is used to declare the sequence of repeated binary items (integers, strings or objects). It has
+ several options that can be applied as an associative array of values.
  
 ```php
  return [
@@ -157,8 +157,8 @@ To add the binary scheme to your existing class, just add "class key" => "type" 
 ``` 
 Available options for `ArrayOf` are:
  - `item` **(required)** Definition of single item type, which is used in array, e.g `[Int32::class]`
- - `size` (optional) Definition of size item type, you can use `[VarInt::class]`, `[Int64::class]` or anything else 
- - `key` (optional) Name of the field from an item object that will be used as associative key in array
+ - `size` (optional) Definition of size type, you can use `[VarInt::class]`, `[Int64::class]` or anything else
+ - `key` (optional) Name of the property from an object that will be used as associative key in array
  - `nullable` (optional) Boolean flag to enable `null` values encoded as size = -1
 
 `BinaryString` type
@@ -167,37 +167,37 @@ Available options for `ArrayOf` are:
  as buffer length field and sequence of bytes as a data.
 
 Available options for `BinaryString` are:
- - `envelope` (optional) Declares the definition of nested data, that is stored in the binary packet.
- - `size` (optional) Definition of size item type, you can use `[VarInt::class]`, `[Int64::class]` or anything else 
+ - `envelope` (optional) Declares the type of nested data, that is stored in the binary packet.
+ - `size` (optional) Definition of size type, you can use `[VarInt::class]`, `[Int64::class]` or anything else
  - `nullable` (optional) Boolean flag to enable `null` values encoded as size = -1
  
-`envelope` feature is used for open-protocols, when low-level protocol just defines some buffer and top-level 
+`envelope` feature is used for some protocols when low-level protocol just defines some buffer and top-level 
 protocol extracts specific packet from this temporary buffer. Example is TCP packet over IP. 
 
-By default `BinaryString` uses `Int16` in big-endian encoding, if you need more data, just configure the `size`
+By default `BinaryString` uses `Int16` in big-endian encoding for size, if you need more data, just configure the `size`
 option accordingly.
 
 `Structure` type
 ---------------
 `Structure` class represents a complex structure that can be mapped to PHP's object instance. It has following options:
  - `class` **(required)** String with FQN name of the corresponding class that holds this structure
- - `scheme` (optional) Definition of each item as key => definition. Key is used as property name for the object.
+ - `scheme` (optional) Definition of each item type as key => definition. Key is used as property name for this object.
 
-**Note**: if you class implements the `StructureInterface`, then you can simply refer to it in the scheme as 
-`[SomeStructure::class]`.
+**Note**: if your `SomeClass` class implements the `SchemeDefinitionInterface`, then you can simply refer to it in the 
+scheme as `[SomeClass::class]`.
 
 
 `BinaryProtocol` class usage
 --------------------------
 This library introduces `BinaryProtocol` class as a top-level binary coder/decoder API. To read the data, please, 
-prepare a suitable data stream via implementation of `StreamInterface` contract or just utilze `StringStream` 
+prepare a suitable data stream via implementation of `StreamInterface` contract or just utilize `StringStream` 
 built-in class to write content into temporary buffer. Then just ask protocol to read or write something in it:
 
 ```php
 <?php
 
 use Alpari\BinaryProtocol\BinaryProtocol;
-use Alpari\BinaryProtocol\Field\Int32;
+use Alpari\BinaryProtocol\Type\Int32;
 
 $protocol = new BinaryProtocol();
 $protocol->write(-10000, [Int32::class], $stream);
@@ -216,9 +216,10 @@ Here is an example of `length` field calculation for the Kafka's `Record` class:
 <?php
 
 use Alpari\BinaryProtocol\BinaryProtocolInterface;
-use Alpari\BinaryProtocol\Field\Structure;
+use Alpari\BinaryProtocol\Type\SchemeType;
+use Alpari\BinaryProtocol\SchemeDefinitionInterface;
 
-class Record
+class Record implements SchemeDefinitionInterface
 {
     /**
      * Record constructor
@@ -241,11 +242,11 @@ class Record
         // Length field uses delayed evaluation to allow size calculation
         $this->length = function (BinaryProtocolInterface $scheme, string $path) {
             // To calculate full length we use scheme without `length` field
-            $recordScheme = self::getScheme();
-            unset($recordScheme['length']);
-            $recordStruct = [Structure::class => ['class' => self::class, 'scheme' => $recordScheme]];
+            $recordSchemeDefinition = self::getDefinition();
+            unset($recordSchemeDefinition['length']);
+            $recordSchemeType = [SchemeType::class => ['class' => self::class, 'scheme' => $recordSchemeDefinition]];
             // Redefine our lazy field with calculated value
-            $this->length = $size = $scheme->sizeOf($this, $recordStruct, $path);
+            $this->length = $size = $scheme->sizeOf($this, $recordSchemeType, $path);
             return $size;
         };
     }
@@ -253,7 +254,7 @@ class Record
     /**
      * @inheritdoc
      */
-    public static function getScheme(): array
+    public static function getDefinition(): array
     {
         return [
             'length'         => [VarIntZigZag::class],

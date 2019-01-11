@@ -12,8 +12,8 @@ declare(strict_types=1);
 
 namespace Alpari\BinaryProtocol;
 
-use Alpari\BinaryProtocol\Field\BinaryString;
-use Alpari\BinaryProtocol\Field\UInt8;
+use Alpari\BinaryProtocol\Type\BinaryString;
+use Alpari\BinaryProtocol\Type\UInt8;
 use Alpari\BinaryProtocol\Stream\StringStream;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
@@ -77,11 +77,11 @@ class BinaryProtocolTest extends TestCase
 
     public function testCanReadWriteStructureByClassName(): void
     {
-        $instance = new class implements StructureInterface {
+        $instance = new class implements SchemeDefinitionInterface {
             public $key = 'test';
             public $value;
 
-            public static function getScheme(): array
+            public static function getDefinition(): array
             {
                 return [
                     'key'   => [BinaryString::class],

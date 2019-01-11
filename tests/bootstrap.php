@@ -11,4 +11,10 @@
 declare (strict_types=1);
 ini_set('display_errors', 'on');
 
-include __DIR__ . '/../vendor/autoload.php';
+if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    include __DIR__ . '/../vendor/autoload.php';
+} elseif (file_exists(__DIR__ . '/../../../autoload.php')) {
+    include __DIR__ . '/../../../autoload.php';
+} else {
+    throw new \InvalidArgumentException('Composer loader was not found');
+}

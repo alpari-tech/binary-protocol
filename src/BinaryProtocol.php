@@ -12,37 +12,36 @@ declare (strict_types=1);
 
 namespace Alpari\BinaryProtocol;
 
-use Alpari\BinaryProtocol\Field\Structure;
+use Alpari\BinaryProtocol\Type\SchemeType;
 use Alpari\BinaryProtocol\Stream\StreamInterface;
 use Closure;
 use function count;
 use function is_numeric;
 
 /**
- * Scheme defines common types and API for reading and writing primitives types into binary stream
+ * Binary protocol defines an API for reading and writing primitives types into binary stream
  */
 class BinaryProtocol implements BinaryProtocolInterface
 {
-
     /**
-     * Cached fields, where key is unique field definition with arguments
+     * Cached fields, where key is unique type definition with arguments
      *
-     * @var FieldInterface[]
+     * @var TypeInterface[]
      */
     private static $fieldCache = [];
 
     /**
      * Decodes a value from the stream
      *
-     * @param array           $schemeType Definition of scheme
-     * @param StreamInterface $stream     Stream to read from
-     * @param string          $path       Optional path to the element
+     * @param array           $type   Type definition
+     * @param StreamInterface $stream Stream to read from
+     * @param string          $path   Optional path to the element
      *
      * @return mixed
      */
-    public function read(array $schemeType, StreamInterface $stream, string $path = '')
+    public function read(array $type, StreamInterface $stream, string $path = '')
     {
-        $fieldInstance = $this->getFieldInstance($schemeType, $path);
+        $fieldInstance = $this->getFieldInstance($type, $path);
         $value         = $fieldInstance->read($stream, $path);
 
         return $value;
@@ -52,48 +51,48 @@ class BinaryProtocol implements BinaryProtocolInterface
      * Encodes the value to the stream
      *
      * @param mixed           $value
-     * @param array           $schemeType Definition of scheme
-     * @param StreamInterface $stream     Stream to write to
-     * @param string          $path       Optional path to the element
+     * @param array           $type   Type definition
+     * @param StreamInterface $stream Stream to write to
+     * @param string          $path   Optional path to the element
      */
-    public function write($value, array $schemeType, StreamInterface $stream, string $path = ''): void
+    public function write($value, array $type, StreamInterface $stream, string $path = ''): void
     {
-        // If we have a Closure instance, then this field should be calculated now
+        // If we have a Closure instance, then this type should be calculated now
         if ($value instanceof Closure) {
             $value = $value($this, $path);
         }
-        $fieldInstance = $this->getFieldInstance($schemeType, $path);
+        $fieldInstance = $this->getFieldInstance($type, $path);
         $fieldInstance->write($value, $stream, $path);
     }
 
     /**
      * Calculates the size of value item in bytes
      *
-     * @param mixed  $value      Give value
-     * @param array  $schemeType Definition of scheme
-     * @param string $path       Optional path to the element
+     * @param mixed  $value Give value
+     * @param array  $type  Type definition
+     * @param string $path  Optional path to the element
      *
      * @return int
      */
-    public function sizeOf($value, array $schemeType, string $path = ''): int
+    public function sizeOf($value, array $type, string $path = ''): int
     {
-        // If we have a Closure instance, then this field should be calculated now
+        // If we have a Closure instance, then this type should be calculated now
         if ($value instanceof Closure) {
             $value = $value($this, $path);
         }
-        $fieldInstance = $this->getFieldInstance($schemeType, $path);
+        $fieldInstance = $this->getFieldInstance($type, $path);
         return $fieldInstance->getSize($value, $path);
     }
 
     /**
-     * Creates or returns a field instance by its definition
+     * Creates or returns a type instance by its definition
      *
      * @param array  $schemeType Scheme definition
-     * @param string $path Path to the field
+     * @param string $path Path to the type
      *
-     * @return FieldInterface
+     * @return TypeInterface
      */
-    private function getFieldInstance(array $schemeType, string $path): FieldInterface
+    private function getFieldInstance(array $schemeType, string $path): TypeInterface
     {
         $key = json_encode($schemeType);
         if (!isset(self::$fieldCache[$key])) {
@@ -101,18 +100,18 @@ class BinaryProtocol implements BinaryProtocolInterface
             $schemeKey   = key($schemeType);
             $schemeValue = current($schemeType);
             // Resolve class aliases as valid struct item
-            if (is_subclass_of($schemeValue, StructureInterface::class, true)) {
-                $schemeKey   = Structure::class;
+            if (is_subclass_of($schemeValue, SchemeDefinitionInterface::class, true)) {
+                $schemeKey   = SchemeType::class;
                 $schemeValue = ['class' => $schemeValue];
             }
             $isAssoc     = !is_numeric($schemeKey);
             $fieldClass  = $isAssoc ? $schemeKey : $schemeValue;
             $fieldArgs   = $isAssoc ? $schemeValue : [];
             $isClassName = is_string($fieldClass) && class_exists($fieldClass);
-            if (!$isClassName || !is_subclass_of($fieldClass, FieldInterface::class, true)) {
+            if (!$isClassName || !is_subclass_of($fieldClass, TypeInterface::class, true)) {
                 throw new \InvalidArgumentException("Received unknown scheme class {$fieldClass} at {$path}");
             }
-            /** @var FieldInterface $fieldInstance */
+            /** @var TypeInterface $fieldInstance */
             self::$fieldCache[$key] = $fieldInstance = new $fieldClass($this, $fieldArgs);
         } else {
             $fieldInstance = self::$fieldCache[$key];

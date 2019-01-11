@@ -1,0 +1,69 @@
+<?php
+/*
+ * This file is part of the Alpari BinaryProtocol library.
+ *
+ * (c) Alpari
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare (strict_types=1);
+
+namespace Alpari\BinaryProtocol\Type;
+
+use Alpari\BinaryProtocol\Stream\StreamInterface;
+
+/**
+ * Represents simple UINT8 type, encoded as one single unsigned byte
+ */
+final class UInt8 extends AbstractType
+{
+    /**
+     * Reads a value from the stream
+     *
+     * @param StreamInterface $stream    Instance of stream to read value from
+     * @param string          $fieldPath Path to the type to simplify debug of complex hierarchical structures
+     *
+     * @return mixed
+     */
+    public function read(StreamInterface $stream, string $fieldPath)
+    {
+        $value = $stream->read(1);
+
+        return unpack('CUINT8', $value)['UINT8'];
+    }
+
+    /**
+     * Writes the value to the given stream
+     *
+     * @param mixed           $value     Value to write
+     * @param StreamInterface $stream    Instance of stream to write to
+     * @param string          $fieldPath Path to the type to simplify debug of complex hierarchical structures
+     *
+     * @return void
+     */
+    public function write($value, StreamInterface $stream, string $fieldPath): void
+    {
+        $stream->write(pack('C', $value));
+    }
+
+    /**
+     * Calculates the size in bytes of single item for given value
+     */
+    public function getSize($value = null, string $fieldPath = ''): int
+    {
+        return 1;
+    }
+
+    /**
+     * Returns format for unpacking with unpack() function or null if no direct equivalent for this type
+     *
+     * @see pack() for details about format
+     * @return string|null
+     */
+    public function getFormat(): ?string
+    {
+        return 'C';
+    }
+}
