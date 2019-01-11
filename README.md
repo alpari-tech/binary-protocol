@@ -174,7 +174,7 @@ Available options for `BinaryString` are:
 `envelope` feature is used for open-protocols, when low-level protocol just defines some buffer and top-level 
 protocol extracts specific packet from this temporary buffer. Example is TCP packet over IP. 
 
-By default `BinaryString` uses `Int16` in big-endian encoding, if you need bigged data, just configure the `size` 
+By default `BinaryString` uses `Int16` in big-endian encoding, if you need more data, just configure the `size`
 option accordingly.
 
 `Structure` type
@@ -203,4 +203,74 @@ $protocol = new BinaryProtocol();
 $protocol->write(-10000, [Int32::class], $stream);
 $value = $protocol->read([Int32::class], $stream);
 var_dump($value);
+```
+
+Lazy-evaluated fields
+---------------------
+In some cases binary protocols contains fields that depends on existing data, for example: packet length, CRC,
+lazy-evaluated or encoded fields. Such fields should be calculated lazely before writing them to a stream. To use
+lazy evaluation just declare the value of such field as `Closure` instance.
+
+Here is an example of `length` field calculation for the Kafka's `Record` class:
+```php
+<?php
+
+use Alpari\BinaryProtocol\BinaryProtocolInterface;
+use Alpari\BinaryProtocol\Field\Structure;
+
+class Record
+{
+    /**
+     * Record constructor
+     */
+    public function __construct(
+        string $value,
+        ?string $key = null,
+        array $headers = [],
+        int $attributes = 0,
+        int $timestampDelta = 0,
+        int $offsetDelta = 0
+    ) {
+        $this->value          = $value;
+        $this->key            = $key;
+        $this->headers        = $headers;
+        $this->attributes     = $attributes;
+        $this->timestampDelta = $timestampDelta;
+        $this->offsetDelta    = $offsetDelta;
+
+        // Length field uses delayed evaluation to allow size calculation
+        $this->length = function (BinaryProtocolInterface $scheme, string $path) {
+            // To calculate full length we use scheme without `length` field
+            $recordScheme = self::getScheme();
+            unset($recordScheme['length']);
+            $recordStruct = [Structure::class => ['class' => self::class, 'scheme' => $recordScheme]];
+            // Redefine our lazy field with calculated value
+            $this->length = $size = $scheme->sizeOf($this, $recordStruct, $path);
+            return $size;
+        };
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function getScheme(): array
+    {
+        return [
+            'length'         => [VarIntZigZag::class],
+            'attributes'     => [Int8::class],
+            'timestampDelta' => [VarLongZigZag::class],
+            'offsetDelta'    => [VarIntZigZag::class],
+            'key'            => [BinaryString::class => [
+                'size'     => [VarIntZigZag::class],
+                'nullable' => true
+            ]],
+            'value'          => [BinaryString::class => ['size' => [VarIntZigZag::class]]],
+            'headers'        => [ArrayOf::class => [
+                'key'  => 'key',
+                'item' => [Header::class],
+                'size' => [VarInt::class]
+            ]]
+        ];
+    }
+}
 ```
