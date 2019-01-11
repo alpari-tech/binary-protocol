@@ -17,7 +17,7 @@ use Alpari\BinaryProtocol\Stream\StreamInterface;
 /**
  * Represents an integer between 0 and 2^64-1 inclusive.
  *
- * The values are encoded using eight bytes in low-endian byte order.
+ * The values are encoded using eight bytes in little-endian byte order.
  */
 final class UInt64LE extends AbstractField
 {

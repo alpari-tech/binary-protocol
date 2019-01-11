@@ -17,7 +17,7 @@ use Alpari\BinaryProtocol\Stream\StreamInterface;
 /**
  * Represents an integer between -2^31 and 2^31-1 inclusive.
  *
- * The values are encoded using four bytes in low-endian byte order.
+ * The values are encoded using four bytes in little-endian byte order.
  */
 final class Int32LE extends AbstractField
 {
