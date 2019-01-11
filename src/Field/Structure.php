@@ -12,9 +12,9 @@ declare (strict_types=1);
 
 namespace Alpari\BinaryProtocol\Field;
 
-use Alpari\BinaryProtocol\BinaryProtocol;
-use Alpari\BinaryProtocol\StructureInterface;
+use Alpari\BinaryProtocol\BinaryProtocolInterface;
 use Alpari\BinaryProtocol\Stream\StreamInterface;
+use Alpari\BinaryProtocol\StructureInterface;
 use InvalidArgumentException;
 use ReflectionClass;
 
@@ -53,12 +53,12 @@ final class Structure extends AbstractField
      *   - class string <required> Name of the corresponding class that holds this structure
      *   - scheme array <optional> Definition of each item as key => definition
      *
-     * @param BinaryProtocol $protocol
-     * @param array          $options
+     * @param BinaryProtocolInterface $protocol
+     * @param array                   $options
      *
      * @throws \ReflectionException
      */
-    public function __construct(BinaryProtocol $protocol, array $options)
+    public function __construct(BinaryProtocolInterface $protocol, array $options)
     {
         if (!isset($options['class'])) {
             throw new InvalidArgumentException('Structure expects the `class` field to be specified');

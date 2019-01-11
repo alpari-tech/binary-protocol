@@ -12,7 +12,7 @@ declare (strict_types=1);
 
 namespace Alpari\BinaryProtocol\Field;
 
-use Alpari\BinaryProtocol\BinaryProtocol;
+use Alpari\BinaryProtocol\BinaryProtocolInterface;
 use Alpari\BinaryProtocol\Stream\StreamInterface;
 use Alpari\BinaryProtocol\Stream\StringStream;
 use InvalidArgumentException;
@@ -52,7 +52,7 @@ class BinaryString extends AbstractField
      *
      * @inheritDoc
      */
-    public function __construct(BinaryProtocol $protocol, array $options)
+    public function __construct(BinaryProtocolInterface $protocol, array $options)
     {
         parent::__construct($protocol, $options);
     }

@@ -12,7 +12,7 @@ declare (strict_types=1);
 
 namespace Alpari\BinaryProtocol\Field;
 
-use Alpari\BinaryProtocol\BinaryProtocol;
+use Alpari\BinaryProtocol\BinaryProtocolInterface;
 
 /**
  * Represents a sequence of characters or null.
@@ -27,7 +27,7 @@ final class NullableString extends BinaryString
     /**
      * NullableString constructor.
      */
-    public function __construct(BinaryProtocol $protocol, array $options)
+    public function __construct(BinaryProtocolInterface $protocol, array $options)
     {
         $options = ['nullable' => true] + $options;
         parent::__construct($protocol, $options);

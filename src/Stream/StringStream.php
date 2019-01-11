@@ -12,6 +12,8 @@ declare (strict_types=1);
 
 namespace Alpari\BinaryProtocol\Stream;
 
+use OutOfBoundsException;
+
 /**
  * Simple string stream implementation that can be used for reading/writing data from/to string buffer
  */
@@ -53,7 +55,7 @@ class StringStream implements StreamInterface
     {
         $bufferLength = strlen($this->buffer);
         if ($packetSize > $bufferLength) {
-            throw new \InvalidArgumentException("Not enough data in the buffer, has {$bufferLength} bytes");
+            throw new OutOfBoundsException("Not enough data in the buffer, has {$bufferLength} bytes");
         }
         $packet       = substr($this->buffer, 0, $packetSize);
         $this->buffer = substr($this->buffer, $packetSize);

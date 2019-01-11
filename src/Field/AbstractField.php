@@ -12,7 +12,7 @@ declare (strict_types=1);
 
 namespace Alpari\BinaryProtocol\Field;
 
-use Alpari\BinaryProtocol\BinaryProtocol;
+use Alpari\BinaryProtocol\BinaryProtocolInterface;
 use Alpari\BinaryProtocol\FieldInterface;
 use InvalidArgumentException;
 
@@ -31,10 +31,10 @@ abstract class AbstractField implements FieldInterface
      *
      * Checks if given option is available for the concrete instance and performs initialization
      *
-     * @param BinaryProtocol $protocol
-     * @param array          $options
+     * @param BinaryProtocolInterface $protocol
+     * @param array                   $options
      */
-    public function __construct(BinaryProtocol $protocol, array $options)
+    public function __construct(BinaryProtocolInterface $protocol, array $options)
     {
         $this->protocol = $protocol;
         $className      = static::class;

@@ -12,7 +12,7 @@ declare (strict_types=1);
 
 namespace Alpari\BinaryProtocol\Field;
 
-use Alpari\BinaryProtocol\BinaryProtocol;
+use Alpari\BinaryProtocol\BinaryProtocolInterface;
 use Alpari\BinaryProtocol\Stream\StreamInterface;
 use InvalidArgumentException;
 
@@ -59,10 +59,10 @@ final class ArrayOf extends AbstractField
      *   - key string <optional> Name of the field from an item object that will be used as associative key in array
      *   - nullable bool <optional> Null value is supported as size = -1
      *
-     * @param BinaryProtocol $protocol
-     * @param array          $options
+     * @param BinaryProtocolInterface $protocol
+     * @param array                   $options
      */
-    public function __construct(BinaryProtocol $protocol, array $options)
+    public function __construct(BinaryProtocolInterface $protocol, array $options)
     {
         if (!isset($options['item'])) {
             throw new InvalidArgumentException('ArrayOf expects the `item` field to be specified');

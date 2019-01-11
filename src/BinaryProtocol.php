@@ -21,11 +21,11 @@ use function is_numeric;
 /**
  * Scheme defines common types and API for reading and writing primitives types into binary stream
  */
-class BinaryProtocol
+class BinaryProtocol implements BinaryProtocolInterface
 {
 
     /**
-     * Cached fields, where key is path to the field
+     * Cached fields, where key is unique field definition with arguments
      *
      * @var FieldInterface[]
      */
@@ -119,5 +119,5 @@ class BinaryProtocol
         }
 
         return $fieldInstance;
-}
+    }
 }
