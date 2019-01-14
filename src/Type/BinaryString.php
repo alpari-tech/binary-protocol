@@ -60,14 +60,14 @@ class BinaryString extends AbstractType
     /**
      * Reads a value from the stream
      *
-     * @param StreamInterface $stream    Instance of stream to read value from
-     * @param string          $fieldPath Path to the type to simplify debug of complex hierarchical structures
+     * @param StreamInterface $stream Instance of stream to read value from
+     * @param string          $path   Path to the item to simplify debug of complex hierarchical structures
      *
      * @return mixed
      */
-    public function read(StreamInterface $stream, string $fieldPath)
+    public function read(StreamInterface $stream, string $path)
     {
-        $stringLength = $this->protocol->read($this->size, $stream, $fieldPath.'[size]');
+        $stringLength = $this->protocol->read($this->size, $stream, $path.'[size]');
         if ($stringLength >= 0) {
             $value = $stream->read($stringLength);
         } elseif ($stringLength === -1 && $this->nullable) {
@@ -78,7 +78,7 @@ class BinaryString extends AbstractType
         // Binary buffer could contains nested envelope, which we can unpack
         if ($value !== null && $this->envelope !== null) {
             $buffer = new StringStream($value);
-            $value  = $this->protocol->read($this->envelope, $buffer, $fieldPath . '[envelope]');
+            $value  = $this->protocol->read($this->envelope, $buffer, $path . '[envelope]');
         }
         return $value;
     }
@@ -86,18 +86,18 @@ class BinaryString extends AbstractType
     /**
      * Writes the value to the given stream
      *
-     * @param mixed           $value     Value to write
-     * @param StreamInterface $stream    Instance of stream to write to
-     * @param string          $fieldPath Path to the type to simplify debug of complex hierarchical structures
+     * @param mixed           $value  Value to write
+     * @param StreamInterface $stream Instance of stream to write to
+     * @param string          $path   Path to the item to simplify debug of complex hierarchical structures
      *
      * @return void
      */
-    public function write($value, StreamInterface $stream, string $fieldPath): void
+    public function write($value, StreamInterface $stream, string $path): void
     {
         // Envelopes should be encoded as raw buffer before future processing
         if ($value !== null && $this->envelope !== null) {
             $buffer = new StringStream();
-            $this->protocol->write($value, $this->envelope, $buffer, $fieldPath . '[envelope]');
+            $this->protocol->write($value, $this->envelope, $buffer, $path . '[envelope]');
             $value = $buffer->getBuffer();
         }
         if ($value === null && $this->nullable) {
@@ -108,7 +108,7 @@ class BinaryString extends AbstractType
             throw new InvalidArgumentException('Invalid value received for the string');
         }
 
-        $this->protocol->write($stringLength, $this->size, $stream, $fieldPath.'[size]');
+        $this->protocol->write($stringLength, $this->size, $stream, $path.'[size]');
         if ($stringLength > 0) {
             $stream->write($value);
         }
@@ -117,12 +117,12 @@ class BinaryString extends AbstractType
     /**
      * Calculates the size in bytes of single item for given value
      */
-    public function getSize($value = null, string $fieldPath = ''): int
+    public function sizeOf($value = null, string $path = ''): int
     {
         // Envelopes should be encoded as raw buffer before future processing
         if ($value !== null && $this->envelope !== null) {
             $buffer = new StringStream();
-            $this->protocol->write($value, $this->envelope, $buffer, $fieldPath);
+            $this->protocol->write($value, $this->envelope, $buffer, $path);
             $value = $buffer->getBuffer();
         }
         if ($value === null && $this->nullable) {
@@ -134,7 +134,7 @@ class BinaryString extends AbstractType
             throw new InvalidArgumentException('Invalid value received for the string');
         }
 
-        $totalSize  = $this->protocol->sizeOf($stringLength, $this->size, $fieldPath . '[size]');
+        $totalSize  = $this->protocol->sizeOf($stringLength, $this->size, $path . '[size]');
         $totalSize += strlen($value);
 
         return $totalSize;

@@ -29,13 +29,13 @@ class StringStream implements StreamInterface
      *
      * @param string $stringBuffer Optional buffer to read from
      */
-    public function __construct(string $stringBuffer = null)
+    public function __construct(string $stringBuffer = '')
     {
-        $this->buffer = $stringBuffer ?? '';
+        $this->buffer = $stringBuffer;
     }
 
     /**
-     * Writes packet to the stream
+     * Writes a packet to the stream
      *
      * @param string $packet Data to write
      */
@@ -45,7 +45,7 @@ class StringStream implements StreamInterface
     }
 
     /**
-     * Reads packet from the stream, advance internal pointer
+     * Reads a packet from the stream
      *
      * @param int $packetSize Size of packet to read
      *

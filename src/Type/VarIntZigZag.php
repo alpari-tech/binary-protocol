@@ -27,9 +27,9 @@ final class VarIntZigZag extends VarInt
     /**
      * @inheritDoc
      */
-    public function read(StreamInterface $stream, string $fieldPath)
+    public function read(StreamInterface $stream, string $path)
     {
-        $value = parent::read($stream, $fieldPath);
+        $value = parent::read($stream, $path);
 
         // ZigZag-decoding
         $value = ($value >> 1) ^ (-($value & 1));
@@ -40,18 +40,18 @@ final class VarIntZigZag extends VarInt
     /**
      * @inheritDoc
      */
-    public function write($value, StreamInterface $stream, string $fieldPath): void
+    public function write($value, StreamInterface $stream, string $path): void
     {
         // ZigZag-encoding
         $value = ($value << 1) ^ ($value >> 31);
 
-        parent::write($value, $stream, $fieldPath);
+        parent::write($value, $stream, $path);
     }
 
     /**
      * Calculates the size in bytes of single item for given value
      */
-    public function getSize($value = null, string $fieldPath = ''): int
+    public function sizeOf($value = null, string $path = ''): int
     {
         if (!isset($value) || !is_integer($value)) {
             throw new InvalidArgumentException('VarIntZigZag size depends on value itself and it should be int type');
@@ -60,6 +60,6 @@ final class VarIntZigZag extends VarInt
         // ZigZag-encoding
         $value = ($value << 1) ^ ($value >> 31);
 
-        return parent::getSize($value);
+        return parent::sizeOf($value);
     }
 }

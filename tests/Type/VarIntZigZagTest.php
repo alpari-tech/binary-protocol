@@ -59,9 +59,9 @@ class VarIntZigZagTest extends TestCase
 
     public function testGetSize(): void
     {
-        $this->assertEquals(1, $this->field->getSize(0b00111111)); // 0b01111110
-        $this->assertEquals(2, $this->field->getSize(0b01111111)); // 0b00000010 0b11111110
-        $this->assertEquals(2, $this->field->getSize(0b10000000)); // 0b00000100 0b10000000
+        $this->assertEquals(1, $this->field->sizeOf(0b00111111)); // 0b01111110
+        $this->assertEquals(2, $this->field->sizeOf(0b01111111)); // 0b00000010 0b11111110
+        $this->assertEquals(2, $this->field->sizeOf(0b10000000)); // 0b00000100 0b10000000
 
     }
 
@@ -69,13 +69,13 @@ class VarIntZigZagTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('VarIntZigZag size depends on value itself and it should be int type');
-        $this->field->getSize();
+        $this->field->sizeOf();
     }
 
     public function testGetSizeThrowsExceptionForNonInt(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('VarIntZigZag size depends on value itself and it should be int type');
-        $this->field->getSize('test');
+        $this->field->sizeOf('test');
     }
 }

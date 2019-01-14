@@ -178,14 +178,14 @@ class ArrayOfTest extends TestCase
 
     public function testGetSize(): void
     {
-        $this->assertEquals(/* INT32 Size */4 + /* UINT32 Item */ 4, $this->field->getSize([20]));
+        $this->assertEquals(/* INT32 Size */4 + /* UINT32 Item */ 4, $this->field->sizeOf([20]));
     }
 
     public function testGetSizeThrowsExceptionForNonArrays(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid value received for the array');
-        $this->field->getSize(1005000);
+        $this->field->sizeOf(1005000);
     }
 
     public function testGetSizeForNullable(): void
@@ -195,6 +195,6 @@ class ArrayOfTest extends TestCase
             'size'     => [Int32::class],
             'nullable' => true,
         ]);
-        $this->assertEquals(/* INT32 Size */4, $field->getSize(null));
+        $this->assertEquals(/* INT32 Size */4, $field->sizeOf(null));
     }
 }

@@ -21,37 +21,37 @@ class Int64BETest extends TestCase
     /**
      * @var Int64BE
      */
-    private $field;
+    private $type;
 
     /**
      * @inheritDoc
      */
     protected function setUp()
     {
-        $this->field = new Int64BE(new BinaryProtocol(), []);
+        $this->type = new Int64BE(new BinaryProtocol(), []);
     }
 
     public function testGetFormat(): void
     {
-        $this->assertEquals('J', $this->field->getFormat());
+        $this->assertEquals('J', $this->type->getFormat());
     }
 
     public function testWrite(): void
     {
         $stream = new StringStream();
-        $this->field->write(127, $stream, '/');
+        $this->type->write(127, $stream, '/');
         $this->assertSame(bin2hex("\x00\x00\x00\x00\x00\x00\x00\x7F"), bin2hex($stream->getBuffer()));
     }
 
     public function testRead(): void
     {
         $stream = new StringStream("\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF");
-        $value  = $this->field->read($stream, '/');
+        $value  = $this->type->read($stream, '/');
         $this->assertSame(-1, $value);
     }
 
     public function testGetSize(): void
     {
-        $this->assertEquals(8, $this->field->getSize());
+        $this->assertEquals(8, $this->type->sizeOf());
     }
 }

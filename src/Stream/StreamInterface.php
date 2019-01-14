@@ -18,14 +18,14 @@ namespace Alpari\BinaryProtocol\Stream;
 interface StreamInterface
 {
     /**
-     * Writes packet to the stream
+     * Writes a packet to the stream
      *
      * @param string $packet Data to write
      */
     public function write(string $packet): void;
 
     /**
-     * Reads packet from the stream, advance internal pointer
+     * Reads a packet from the stream
      *
      * @param int $packetSize Size of packet to read
      *

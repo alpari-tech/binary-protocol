@@ -40,7 +40,7 @@ abstract class AbstractType implements TypeInterface
         $className      = static::class;
         foreach ($options as $key => $value) {
             if (!property_exists($className, $key)) {
-                throw new InvalidArgumentException("Unknown option {$key} for the {$className}");
+                throw new InvalidArgumentException("Unknown option {$key} for the `{$className}``");
             }
             $this->$key = $value;
         }

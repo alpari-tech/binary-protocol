@@ -52,6 +52,6 @@ class UInt32BETest extends TestCase
 
     public function testGetSize(): void
     {
-        $this->assertEquals(4, $this->field->getSize());
+        $this->assertEquals(4, $this->field->sizeOf());
     }
 }

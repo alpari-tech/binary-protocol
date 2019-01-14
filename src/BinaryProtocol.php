@@ -24,11 +24,11 @@ use function is_numeric;
 class BinaryProtocol implements BinaryProtocolInterface
 {
     /**
-     * Cached fields, where key is unique type definition with arguments
+     * Cached types, where key is unique type definition with arguments
      *
      * @var TypeInterface[]
      */
-    private static $fieldCache = [];
+    private static $typeCache = [];
 
     /**
      * Decodes a value from the stream
@@ -41,8 +41,8 @@ class BinaryProtocol implements BinaryProtocolInterface
      */
     public function read(array $type, StreamInterface $stream, string $path = '')
     {
-        $fieldInstance = $this->getFieldInstance($type, $path);
-        $value         = $fieldInstance->read($stream, $path);
+        $typeInstance = $this->getTypeInstance($type, $path);
+        $value         = $typeInstance->read($stream, $path);
 
         return $value;
     }
@@ -61,8 +61,8 @@ class BinaryProtocol implements BinaryProtocolInterface
         if ($value instanceof Closure) {
             $value = $value($this, $path);
         }
-        $fieldInstance = $this->getFieldInstance($type, $path);
-        $fieldInstance->write($value, $stream, $path);
+        $typeInstance = $this->getTypeInstance($type, $path);
+        $typeInstance->write($value, $stream, $path);
     }
 
     /**
@@ -80,43 +80,44 @@ class BinaryProtocol implements BinaryProtocolInterface
         if ($value instanceof Closure) {
             $value = $value($this, $path);
         }
-        $fieldInstance = $this->getFieldInstance($type, $path);
-        return $fieldInstance->getSize($value, $path);
+        $typeInstance = $this->getTypeInstance($type, $path);
+
+        return $typeInstance->sizeOf($value, $path);
     }
 
     /**
      * Creates or returns a type instance by its definition
      *
-     * @param array  $schemeType Scheme definition
-     * @param string $path Path to the type
+     * @param array  $typeDefinition Type definition
+     * @param string $path           Path to the item
      *
      * @return TypeInterface
      */
-    private function getFieldInstance(array $schemeType, string $path): TypeInterface
+    private function getTypeInstance(array $typeDefinition, string $path): TypeInterface
     {
-        $key = json_encode($schemeType);
-        if (!isset(self::$fieldCache[$key])) {
-            assert(count($schemeType) === 1, 'Scheme should only contain one item');
-            $schemeKey   = key($schemeType);
-            $schemeValue = current($schemeType);
-            // Resolve class aliases as valid struct item
-            if (is_subclass_of($schemeValue, SchemeDefinitionInterface::class, true)) {
-                $schemeKey   = SchemeType::class;
-                $schemeValue = ['class' => $schemeValue];
+        $cacheKey = json_encode($typeDefinition);
+        if (!isset(self::$typeCache[$cacheKey])) {
+            assert(count($typeDefinition) === 1, 'Type definition should contain only one item');
+            $typeKey   = key($typeDefinition);
+            $typeValue = current($typeDefinition);
+            // Resolve class aliases as valid SchemeType item
+            if (is_subclass_of($typeValue, SchemeDefinitionInterface::class, true)) {
+                $typeKey   = SchemeType::class;
+                $typeValue = ['class' => $typeValue];
             }
-            $isAssoc     = !is_numeric($schemeKey);
-            $fieldClass  = $isAssoc ? $schemeKey : $schemeValue;
-            $fieldArgs   = $isAssoc ? $schemeValue : [];
-            $isClassName = is_string($fieldClass) && class_exists($fieldClass);
-            if (!$isClassName || !is_subclass_of($fieldClass, TypeInterface::class, true)) {
-                throw new \InvalidArgumentException("Received unknown scheme class {$fieldClass} at {$path}");
+            $isAssoc     = !is_numeric($typeKey);
+            $typeClass   = $isAssoc ? $typeKey : $typeValue;
+            $typeArgs    = $isAssoc ? $typeValue : [];
+            $isClassName = is_string($typeClass) && class_exists($typeClass);
+            if (!$isClassName || !is_subclass_of($typeClass, TypeInterface::class, true)) {
+                $pathSuffix = $path ? " at {$path}" : '';
+                throw new \InvalidArgumentException("Received unknown type class `{$typeClass}`{$pathSuffix}");
             }
-            /** @var TypeInterface $fieldInstance */
-            self::$fieldCache[$key] = $fieldInstance = new $fieldClass($this, $fieldArgs);
+            self::$typeCache[$cacheKey] = $typeInstance = new $typeClass($this, $typeArgs);
         } else {
-            $fieldInstance = self::$fieldCache[$key];
+            $typeInstance = self::$typeCache[$cacheKey];
         }
 
-        return $fieldInstance;
+        return $typeInstance;
     }
 }

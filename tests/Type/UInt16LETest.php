@@ -52,6 +52,6 @@ class UInt16LETest extends TestCase
 
     public function testGetSize(): void
     {
-        $this->assertEquals(2, $this->field->getSize());
+        $this->assertEquals(2, $this->field->sizeOf());
     }
 }

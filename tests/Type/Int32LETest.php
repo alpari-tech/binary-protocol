@@ -21,37 +21,37 @@ class Int32LETest extends TestCase
     /**
      * @var Int32LE
      */
-    private $field;
+    private $type;
 
     /**
      * @inheritDoc
      */
     protected function setUp()
     {
-        $this->field = new Int32LE(new BinaryProtocol(), []);
+        $this->type = new Int32LE(new BinaryProtocol(), []);
     }
 
     public function testGetFormat(): void
     {
-        $this->assertEquals('V', $this->field->getFormat());
+        $this->assertEquals('V', $this->type->getFormat());
     }
 
     public function testWrite(): void
     {
         $stream = new StringStream();
-        $this->field->write(128, $stream, '/');
+        $this->type->write(128, $stream, '/');
         $this->assertSame(bin2hex("\x80\x00\x00\x00"), bin2hex($stream->getBuffer()));
     }
 
     public function testRead(): void
     {
         $stream = new StringStream("\xFF\xFF\xFF\xFF");
-        $value  = $this->field->read($stream, '/');
+        $value  = $this->type->read($stream, '/');
         $this->assertSame(-1, $value);
     }
 
     public function testGetSize(): void
     {
-        $this->assertEquals(4, $this->field->getSize());
+        $this->assertEquals(4, $this->type->sizeOf());
     }
 }

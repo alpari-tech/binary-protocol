@@ -24,12 +24,12 @@ final class UInt64LE extends AbstractType
     /**
      * Reads a value from the stream
      *
-     * @param StreamInterface $stream    Instance of stream to read value from
-     * @param string          $fieldPath Path to the type to simplify debug of complex hierarchical structures
+     * @param StreamInterface $stream Instance of stream to read value from
+     * @param string          $path   Path to the item to simplify debug of complex hierarchical structures
      *
      * @return mixed
      */
-    public function read(StreamInterface $stream, string $fieldPath)
+    public function read(StreamInterface $stream, string $path)
     {
         $packet = $stream->read(8);
 
@@ -39,13 +39,13 @@ final class UInt64LE extends AbstractType
     /**
      * Writes the value to the given stream
      *
-     * @param mixed           $value     Value to write
-     * @param StreamInterface $stream    Instance of stream to write to
-     * @param string          $fieldPath Path to the type to simplify debug of complex hierarchical structures
+     * @param mixed           $value  Value to write
+     * @param StreamInterface $stream Instance of stream to write to
+     * @param string          $path   Path to the item to simplify debug of complex hierarchical structures
      *
      * @return void
      */
-    public function write($value, StreamInterface $stream, string $fieldPath): void
+    public function write($value, StreamInterface $stream, string $path): void
     {
         $packet = pack('P', $value);
         $stream->write($packet);
@@ -54,7 +54,7 @@ final class UInt64LE extends AbstractType
     /**
      * Calculates the size in bytes of single item for given value
      */
-    public function getSize($value = null, string $fieldPath = ''): int
+    public function sizeOf($value = null, string $path = ''): int
     {
         return 8;
     }

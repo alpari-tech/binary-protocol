@@ -60,9 +60,9 @@ class VarIntTest extends TestCase
 
     public function testGetSize(): void
     {
-        $this->assertEquals(1, $this->field->getSize(0b01111111));
-        $this->assertEquals(2, $this->field->getSize(0b10000000));
-        $this->assertEquals(3, $this->field->getSize(0b000111111111111111111111));
+        $this->assertEquals(1, $this->field->sizeOf(0b01111111));
+        $this->assertEquals(2, $this->field->sizeOf(0b10000000));
+        $this->assertEquals(3, $this->field->sizeOf(0b000111111111111111111111));
 
     }
 
@@ -70,13 +70,13 @@ class VarIntTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('VarInt size depends on value itself and it should be int type');
-        $this->field->getSize();
+        $this->field->sizeOf();
     }
 
     public function testGetSizeThrowsExceptionForNonInt(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('VarInt size depends on value itself and it should be int type');
-        $this->field->getSize('test');
+        $this->field->sizeOf('test');
     }
 }

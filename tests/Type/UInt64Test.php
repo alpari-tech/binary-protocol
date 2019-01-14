@@ -53,6 +53,6 @@ class UInt64Test extends TestCase
 
     public function testGetSize(): void
     {
-        $this->assertEquals(8, $this->field->getSize());
+        $this->assertEquals(8, $this->field->sizeOf());
     }
 }

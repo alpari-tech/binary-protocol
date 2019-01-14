@@ -26,7 +26,7 @@ class VarLong extends VarInt
     /**
      * Calculates the size in bytes of single item for given value
      */
-    public function getSize($value = null, string $fieldPath = ''): int
+    public function sizeOf($value = null, string $path = ''): int
     {
         if (!isset($value) || !is_integer($value)) {
             throw new InvalidArgumentException('VarLong size depends on value itself and it should be int type');

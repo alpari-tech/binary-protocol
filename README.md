@@ -12,7 +12,7 @@ Installation
 `alpari/binary-protocol` can be installed with composer. To download this library please type:
 
 ``` bash
-composer require alpari/kafka-client
+composer require alpari/binary-protocol
 ```
  
 TypeInterface API
@@ -20,42 +20,47 @@ TypeInterface API
 The TypeInterface API describes low-level representation of data, for example Int8, Int16, String, etc...
 
 ```php
+<?php
+
+namespace Alpari\BinaryProtocol;
+
+use Alpari\BinaryProtocol\Stream\StreamInterface;
+
 /**
  * Declares the type that can be packed/unpacked from/to binary stream
  */
 interface TypeInterface
 {
-
     /**
-     * Reads a value of field from the stream
+     * Reads a value from the stream
      *
-     * @param StreamInterface $stream    Instance of stream to read value from
-     * @param string          $fieldPath Path to the field to simplify debug of complex hierarchical structures
+     * @param StreamInterface $stream Instance of stream to read value from
+     * @param string          $path   Path to the item to simplify debug of complex hierarchical structures
      *
      * @return mixed
      */
-    public function read(StreamInterface $stream, string $fieldPath);
+    public function read(StreamInterface $stream, string $path);
 
     /**
-     * Writes the value of field to the given stream
+     * Writes the value to the given stream
      *
-     * @param mixed           $value     Value to write
-     * @param StreamInterface $stream    Instance of stream to write to
-     * @param string          $fieldPath Path to the field to simplify debug of complex hierarchical structures
+     * @param mixed           $value  Value to write
+     * @param StreamInterface $stream Instance of stream to write to
+     * @param string          $path   Path to the item to simplify debug of complex hierarchical structures
      *
      * @return void
      */
-    public function write($value, StreamInterface $stream, string $fieldPath): void;
+    public function write($value, StreamInterface $stream, string $path): void;
 
     /**
      * Calculates the size in bytes of single item for given value
      *
-     * @param mixed  $value     Value to write
-     * @param string $fieldPath Path to the field to simplify debug of complex hierarchical structures
+     * @param mixed  $value Value to write
+     * @param string $path  Path to the item to simplify debug of complex hierarchical structures
      *
      * @return int
      */
-    public function getSize($value = null, string $fieldPath =''): int;
+    public function sizeOf($value = null, string $path =''): int;
 }
 ``` 
 Each data type should be added as a separate class implementing `TypeInterface` contract with logic of packing and
@@ -64,7 +69,7 @@ unpacking data to/from `StreamInterface`
 As you can see there are two main methods which are `read()` and `write()` that are used for reading and writing binary 
 data to the stream. 
 
-The method `getSize()` is used for calculation of data size in bytes. For simple data types it will return constant 
+The method `sizeOf()` is used for calculation of data size in bytes. For simple data types it will return constant 
 value and for more complex structures like arrays or objects it should be able to calculate the size of such field.
 
 Method `getFormat()` is declared in the interface, but it is not used right now. It can be used later for fixed-size 
@@ -177,9 +182,9 @@ protocol extracts specific packet from this temporary buffer. Example is TCP pac
 By default `BinaryString` uses `Int16` in big-endian encoding for size, if you need more data, just configure the `size`
 option accordingly.
 
-`Structure` type
+`SchemeType` type
 ---------------
-`Structure` class represents a complex structure that can be mapped to PHP's object instance. It has following options:
+`SchemeType` class represents a complex structure that can be mapped to PHP's object instance. It has following options:
  - `class` **(required)** String with FQN name of the corresponding class that holds this structure
  - `scheme` (optional) Definition of each item type as key => definition. Key is used as property name for this object.
 
@@ -207,8 +212,8 @@ var_dump($value);
 
 Lazy-evaluated fields
 ---------------------
-In some cases binary protocols contains fields that depends on existing data, for example: packet length, CRC,
-lazy-evaluated or encoded fields. Such fields should be calculated lazely before writing them to a stream. To use
+In some cases binary protocols contains fields that depend on existing data, for example: packet length, CRC,
+lazy-evaluated or encoded fields. Such fields should be calculated lazily before writing them to a stream. To use
 lazy evaluation just declare the value of such field as `Closure` instance.
 
 Here is an example of `length` field calculation for the Kafka's `Record` class:

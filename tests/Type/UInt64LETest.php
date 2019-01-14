@@ -21,7 +21,7 @@ class UInt64LETest extends TestCase
     /**
      * @var UInt64LE
      */
-    private $field;
+    private $type;
 
     /**
      * @inheritDoc
@@ -53,6 +53,6 @@ class UInt64LETest extends TestCase
 
     public function testGetSize(): void
     {
-        $this->assertEquals(8, $this->field->getSize());
+        $this->assertEquals(8, $this->field->sizeOf());
     }
 }

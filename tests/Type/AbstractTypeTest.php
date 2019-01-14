@@ -47,9 +47,9 @@ class AbstractFieldTest extends TestCase
         $instance = new class($protocol, []) extends AbstractType {
             protected $someOption;
 
-            public function read(StreamInterface $stream, string $fieldPath) {}
-            public function write($value, StreamInterface $stream, string $fieldPath): void {}
-            public function getSize($value = null, string $fieldPath = ''): int { return 0;}
+            public function read(StreamInterface $stream, string $path) {}
+            public function write($value, StreamInterface $stream, string $path): void {}
+            public function sizeOf($value = null, string $path = ''): int { return 0;}
         };
 
         self::$class = get_class($instance);
@@ -57,16 +57,16 @@ class AbstractFieldTest extends TestCase
 
     public function testConstructorCanInitializePropertiesFromConfig(): void
     {
-        $field    = new self::$class(self::$protocol, ['someOption' => 'test']);
-        $property = new ReflectionProperty($field, 'someOption');
+        $type    = new self::$class(self::$protocol, ['someOption' => 'test']);
+        $property = new ReflectionProperty($type, 'someOption');
         $property->setAccessible(true);
-        $this->assertEquals('test', $property->getValue($field));
+        $this->assertEquals('test', $property->getValue($type));
     }
 
     public function testConstructorThrowsExceptionForUnknownConfig(): void
     {
         $this->expectException('InvalidArgumentException');
         $this->expectExceptionMessageRegExp('/^Unknown option anotherOption for the/');
-        $field = new self::$class(self::$protocol, ['anotherOption' => 'test']);
+        $type = new self::$class(self::$protocol, ['anotherOption' => 'test']);
     }
 }

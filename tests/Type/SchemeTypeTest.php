@@ -23,7 +23,7 @@ class SchemeTypeTest extends TestCase
     /**
      * @var SchemeType
      */
-    private $field;
+    private $type;
 
     /**
      * @var string
@@ -49,8 +49,9 @@ class SchemeTypeTest extends TestCase
                 ];
             }
         };
+
         $this->className = get_class($instance);
-        $this->field     = new SchemeType(new BinaryProtocol(), [
+        $this->type      = new SchemeType(new BinaryProtocol(), [
             'class' => $this->className
         ]);
     }
@@ -58,14 +59,14 @@ class SchemeTypeTest extends TestCase
     public function testConstructorRequiresClassOption(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Structure expects the `class` option to be specified');
+        $this->expectExceptionMessage('SchemeType expects the `class` option to be specified');
         new SchemeType(new BinaryProtocol(), []);
     }
 
-    public function testConstructorRequiresClassToBeStructureInterface(): void
+    public function testConstructorRequiresClassToBeSchemeDefinitionInterface(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Class should implement `SchemeDefinitionInterface`');
+        $this->expectExceptionMessageRegExp('/Class [\S]+ should implement `SchemeDefinitionInterface`/');
         new SchemeType(new BinaryProtocol(), [
             'class' => InvalidArgumentException::class
         ]);
@@ -74,7 +75,7 @@ class SchemeTypeTest extends TestCase
     public function testGetFormat(): void
     {
         // Currently, format is not determined, but later it will be possible to do complex expressions
-        $this->assertEquals(null, $this->field->getFormat());
+        $this->assertEquals(null, $this->type->getFormat());
     }
 
     public function testWrite(): void
@@ -83,7 +84,7 @@ class SchemeTypeTest extends TestCase
         $instance = new $this->className;
         $instance->key   = 'test';
         $instance->value = 'value';
-        $this->field->write($instance, $stream, '/');
+        $this->type->write($instance, $stream, '/');
         $buffer         = $stream->getBuffer();
         $expectedLength =
             /* INT8 Key Length */ 1 +
@@ -99,7 +100,7 @@ class SchemeTypeTest extends TestCase
     public function testRead(): void
     {
         $stream = new StringStream("\x04\x74\x65\x73\x74\x05\x76\x61\x6c\x75\x65");
-        $value  = $this->field->read($stream, '/');
+        $value  = $this->type->read($stream, '/');
         $this->assertInstanceOf($this->className, $value);
         $this->assertEquals('test', $value->key);
         $this->assertEquals('value', $value->value);
@@ -117,6 +118,6 @@ class SchemeTypeTest extends TestCase
             /* INT8 Value Length */ 1 +
             /* 'value' Length */ 5;
 
-        $this->assertEquals($expectedLength, $this->field->getSize($instance));
+        $this->assertEquals($expectedLength, $this->type->sizeOf($instance));
     }
 }

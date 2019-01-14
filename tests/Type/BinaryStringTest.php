@@ -23,14 +23,14 @@ class BinaryStringTest extends TestCase
     /**
      * @var BinaryString
      */
-    private $field;
+    private $type;
 
     /**
      * @inheritDoc
      */
     protected function setUp()
     {
-        $this->field = new BinaryString(new BinaryProtocol(), [
+        $this->type = new BinaryString(new BinaryProtocol(), [
             'size' => [Int32::class]
         ]);
     }
@@ -38,13 +38,13 @@ class BinaryStringTest extends TestCase
     public function testGetFormat(): void
     {
         // Currently, format is not determined, but later it will be possible to do N20 for array of 20 UINT32
-        $this->assertEquals(null, $this->field->getFormat());
+        $this->assertEquals(null, $this->type->getFormat());
     }
 
     public function testWrite(): void
     {
         $stream = new StringStream();
-        $this->field->write('abc', $stream, '/');
+        $this->type->write('abc', $stream, '/');
         $buffer = $stream->getBuffer();
         $this->assertEquals(/* INT32 Length */4 + /* 3 Char */ 3, strlen($buffer));
         $this->assertEquals('03000000616263', bin2hex($buffer));
@@ -55,17 +55,17 @@ class BinaryStringTest extends TestCase
         $stream = new StringStream();
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid value received for the string');
-        $this->field->write(null, $stream, '/');
+        $this->type->write(null, $stream, '/');
     }
 
     public function testWriteNullable(): void
     {
-        $field = new BinaryString(new BinaryProtocol(), [
+        $type   = new BinaryString(new BinaryProtocol(), [
             'size'     => [Int32::class],
             'nullable' => true,
         ]);
         $stream = new StringStream();
-        $field->write(null, $stream, '/');
+        $type->write(null, $stream, '/');
         $this->assertEquals(bin2hex("\xFF\xFF\xFF\xFF"), bin2hex($stream->getBuffer()));
     }
 
@@ -86,20 +86,20 @@ class BinaryStringTest extends TestCase
         $instance->key   = 'test';
         $instance->value = 'value';
 
-        $field = new BinaryString(new BinaryProtocol(), [
+        $type = new BinaryString(new BinaryProtocol(), [
             'size'     => [Int32::class],
             'envelope' => [get_class($instance)]
         ]);
 
         $stream = new StringStream();
-        $field->write($instance, $stream, '/');
+        $type->write($instance, $stream, '/');
         $this->assertEquals('0d000000000474657374000576616c7565', bin2hex($stream->getBuffer()));
     }
 
     public function testRead(): void
     {
         $stream = new StringStream("\x03\x00\x00\x00\x61\x62\x63");
-        $value  = $this->field->read($stream, '/');
+        $value  = $this->type->read($stream, '/');
         $this->assertEquals('abc', $value);
     }
 
@@ -108,17 +108,17 @@ class BinaryStringTest extends TestCase
         $stream = new StringStream("\xFF\xFF\xFF\xFF");
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageRegExp('/Received negative string length/');
-        $this->field->read($stream, '/');
+        $this->type->read($stream, '/');
     }
 
     public function testReadNullable(): void
     {
-        $field = new BinaryString(new BinaryProtocol(), [
+        $type   = new BinaryString(new BinaryProtocol(), [
             'size'     => [Int32::class],
             'nullable' => true,
         ]);
         $stream = new StringStream("\xFF\xFF\xFF\xFF");
-        $value  = $field->read($stream, '/');
+        $value  = $type->read($stream, '/');
         $this->assertEquals(null, $value);
     }
 
@@ -138,13 +138,13 @@ class BinaryStringTest extends TestCase
         };
 
         $anonClass = get_class($instance);
-        $field     = new BinaryString(new BinaryProtocol(), [
+        $type     = new BinaryString(new BinaryProtocol(), [
             'size'     => [Int32::class],
             'envelope' => [$anonClass]
         ]);
 
         $stream = new StringStream("\x0D\x00\x00\x00\x00\x04\x74\x65\x73\x74\x00\x05\x76\x61\x6c\x75\x65");
-        $value  = $field->read($stream, '/');
+        $value  = $type->read($stream, '/');
         $this->assertInstanceOf($anonClass, $value);
         $this->assertEquals('test', $value->key);
         $this->assertEquals('value', $value->value);
@@ -152,23 +152,23 @@ class BinaryStringTest extends TestCase
 
     public function testGetSize(): void
     {
-        $this->assertEquals(/* INT32 Length */4 + /* Char x 4 */ 4, $this->field->getSize('test'));
+        $this->assertEquals(/* INT32 Length */4 + /* Char x 4 */ 4, $this->type->sizeOf('test'));
     }
 
     public function testGetSizeThrowsExceptionForNonStrings(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid value received for the string');
-        $this->field->getSize([]);
+        $this->type->sizeOf([]);
     }
 
     public function testGetSizeForNullable(): void
     {
-        $field = new BinaryString(new BinaryProtocol(), [
+        $type = new BinaryString(new BinaryProtocol(), [
             'size'     => [Int32::class],
             'nullable' => true,
         ]);
-        $this->assertEquals(/* INT32 Length */4, $field->getSize(null));
+        $this->assertEquals(/* INT32 Length */4, $type->sizeOf(null));
     }
 
     public function testGetSizeForEnvelope(): void
@@ -188,10 +188,11 @@ class BinaryStringTest extends TestCase
         $instance->key   = 'test';
         $instance->value = 'value';
 
-        $field = new BinaryString(new BinaryProtocol(), [
+        $type = new BinaryString(new BinaryProtocol(), [
             'size'     => [Int32::class],
             'envelope' => [get_class($instance)]
         ]);
+
         $expectedLength =
             /* INT32 Length */ 4 +
             /* INT8 Key Length */ 1 +
@@ -199,6 +200,6 @@ class BinaryStringTest extends TestCase
             /* INT8 Value Length */ 1 +
             /* 'value' Length */ 5;
 
-        $this->assertEquals($expectedLength, $field->getSize($instance));
+        $this->assertEquals($expectedLength, $type->sizeOf($instance));
     }
 }

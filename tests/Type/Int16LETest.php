@@ -21,37 +21,37 @@ class Int16LETest extends TestCase
     /**
      * @var Int16LE
      */
-    private $field;
+    private $type;
 
     /**
      * @inheritDoc
      */
     protected function setUp()
     {
-        $this->field = new Int16LE(new BinaryProtocol(), []);
+        $this->type = new Int16LE(new BinaryProtocol(), []);
     }
 
     public function testGetFormat(): void
     {
-        $this->assertEquals('v', $this->field->getFormat());
+        $this->assertEquals('v', $this->type->getFormat());
     }
 
     public function testWrite(): void
     {
         $stream = new StringStream();
-        $this->field->write(127, $stream, '/');
+        $this->type->write(127, $stream, '/');
         $this->assertSame("\x7F\x00", $stream->getBuffer());
     }
 
     public function testRead(): void
     {
         $stream = new StringStream("\xFF\xFF");
-        $value  = $this->field->read($stream, '/');
+        $value  = $this->type->read($stream, '/');
         $this->assertSame(-1, $value);
     }
 
     public function testGetSize(): void
     {
-        $this->assertEquals(2, $this->field->getSize());
+        $this->assertEquals(2, $this->type->sizeOf());
     }
 }

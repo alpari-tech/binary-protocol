@@ -21,7 +21,7 @@ class UInt16BETest extends TestCase
     /**
      * @var UInt16BE
      */
-    private $field;
+    private $type;
 
     /**
      * @inheritDoc
@@ -52,6 +52,6 @@ class UInt16BETest extends TestCase
 
     public function testGetSize(): void
     {
-        $this->assertEquals(2, $this->field->getSize());
+        $this->assertEquals(2, $this->field->sizeOf());
     }
 }

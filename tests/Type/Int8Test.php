@@ -21,37 +21,37 @@ class Int8Test extends TestCase
     /**
      * @var Int8
      */
-    private $field;
+    private $type;
 
     /**
      * @inheritDoc
      */
     protected function setUp()
     {
-        $this->field = new Int8(new BinaryProtocol(), []);
+        $this->type = new Int8(new BinaryProtocol(), []);
     }
 
     public function testGetFormat(): void
     {
-        $this->assertEquals('c', $this->field->getFormat());
+        $this->assertEquals('c', $this->type->getFormat());
     }
 
     public function testWrite(): void
     {
         $stream = new StringStream();
-        $this->field->write(127, $stream, '/');
+        $this->type->write(127, $stream, '/');
         $this->assertEquals("\x7F", $stream->getBuffer());
     }
 
     public function testRead(): void
     {
         $stream = new StringStream("\xFF");
-        $value  = $this->field->read($stream, '/');
+        $value  = $this->type->read($stream, '/');
         $this->assertSame(-1, $value);
     }
 
     public function testGetSize(): void
     {
-        $this->assertEquals(1, $this->field->getSize());
+        $this->assertEquals(1, $this->type->sizeOf());
     }
 }

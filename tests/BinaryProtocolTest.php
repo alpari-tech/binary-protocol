@@ -102,7 +102,7 @@ class BinaryProtocolTest extends TestCase
     public function testThrowsExceptionForInvalidClassName(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageRegExp('/^Received unknown scheme class/');
+        $this->expectExceptionMessageRegExp('/^Received unknown type class /');
         $stream = new StringStream();
         $this->protocol->read([InvalidArgumentException::class], $stream);
     }

@@ -61,12 +61,12 @@ final class SchemeType extends AbstractType
     public function __construct(BinaryProtocolInterface $protocol, array $options)
     {
         if (!isset($options['class'])) {
-            throw new InvalidArgumentException('Structure expects the `class` option to be specified');
+            throw new InvalidArgumentException('SchemeType expects the `class` option to be specified');
         }
         /** @var SchemeDefinitionInterface $className */
         $className = $options['class'];
         if (!is_subclass_of($className, SchemeDefinitionInterface::class, true)) {
-            throw new InvalidArgumentException('Class should implement `SchemeDefinitionInterface`');
+            throw new InvalidArgumentException("Class `{$className}` should implement `SchemeDefinitionInterface`");
         }
         parent::__construct($protocol, $options);
 
@@ -79,23 +79,23 @@ final class SchemeType extends AbstractType
     /**
      * Reads a value from the stream
      *
-     * @param StreamInterface $stream    Instance of stream to read value from
-     * @param string          $fieldPath Path to the type to simplify debug of complex hierarchical structures
+     * @param StreamInterface $stream Instance of stream to read value from
+     * @param string          $path   Path to the item to simplify debug of complex hierarchical structures
      *
      * @return mixed
      */
-    public function read(StreamInterface $stream, string $fieldPath)
+    public function read(StreamInterface $stream, string $path)
     {
-        $fields   = $this->scheme;
+        $scheme   = $this->scheme;
         $protocol = $this->protocol;
         $result   = $this->reflection->newInstanceWithoutConstructor();
 
-        $accessor = function (StreamInterface $stream, string $fieldPath) use ($protocol, $fields, $result) {
-            foreach ($fields as $fieldKey => $fieldScheme) {
-                $result->$fieldKey = $protocol->read($fieldScheme, $stream, $fieldPath . '->' . $fieldKey);
+        $accessor = function (StreamInterface $stream, string $path) use ($protocol, $scheme, $result) {
+            foreach ($scheme as $key => $propertyType) {
+                $result->$key = $protocol->read($propertyType, $stream, $path . '->' . $key);
             }
         };
-        $accessor->call($result, $stream, $fieldPath . ':' . $this->class);
+        $accessor->call($result, $stream, $path . ':' . $this->class);
 
         return $result;
     }
@@ -103,42 +103,42 @@ final class SchemeType extends AbstractType
     /**
      * Writes the value to the given stream
      *
-     * @param mixed           $value     Value to write
-     * @param StreamInterface $stream    Instance of stream to write to
-     * @param string          $fieldPath Path to the type to simplify debug of complex hierarchical structures
+     * @param mixed           $value  Value to write
+     * @param StreamInterface $stream Instance of stream to write to
+     * @param string          $path   Path to the item to simplify debug of complex hierarchical structures
      *
      * @return void
      */
-    public function write($value, StreamInterface $stream, string $fieldPath): void
+    public function write($value, StreamInterface $stream, string $path): void
     {
-        $fields   = $this->scheme;
+        $scheme   = $this->scheme;
         $protocol = $this->protocol;
 
-        $accessor = function (StreamInterface $stream, string $fieldPath) use ($protocol, $fields, $value) {
-            foreach ($fields as $fieldKey => $fieldScheme) {
-                $protocol->write($value->$fieldKey, $fieldScheme, $stream, $fieldPath . '->' . $fieldKey);
+        $accessor = function (StreamInterface $stream, string $path) use ($protocol, $scheme, $value) {
+            foreach ($scheme as $key => $propertyType) {
+                $protocol->write($value->$key, $propertyType, $stream, $path . '->' . $key);
             }
         };
-        $accessor->call($value, $stream, $fieldPath . ':' . $this->class);
+        $accessor->call($value, $stream, $path . ':' . $this->class);
     }
 
     /**
      * Calculates the size in bytes of single item for given value
      */
-    public function getSize($value = null, string $fieldPath = ''): int
+    public function sizeOf($value = null, string $path = ''): int
     {
-        $fields   = $this->scheme;
+        $scheme   = $this->scheme;
         $protocol = $this->protocol;
 
-        $accessor = function ($value, string $fieldPath) use ($protocol, $fields) {
+        $accessor = function ($value, string $path) use ($protocol, $scheme) {
             $total = 0;
-            foreach ($fields as $fieldKey => $fieldScheme) {
-                $total += $protocol->sizeOf($value->$fieldKey, $fieldScheme, $fieldPath . '->' . $fieldKey);
+            foreach ($scheme as $key => $propertyType) {
+                $total += $protocol->sizeOf($value->$key, $propertyType, $path . '->' . $key);
             }
 
             return $total;
         };
 
-        return $accessor->call($value, $value, $fieldPath . ':' . $this->class);
+        return $accessor->call($value, $value, $path . ':' . $this->class);
     }
 }

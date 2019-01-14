@@ -73,18 +73,18 @@ final class ArrayOf extends AbstractType
     /**
      * Reads a value from the stream
      *
-     * @param StreamInterface $stream    Instance of stream to read value from
-     * @param string          $fieldPath Path to the type to simplify debug of complex hierarchical structures
+     * @param StreamInterface $stream Instance of stream to read value from
+     * @param string          $path   Path to the item to simplify debug of complex hierarchical structures
      *
      * @return mixed
      */
-    public function read(StreamInterface $stream, string $fieldPath)
+    public function read(StreamInterface $stream, string $path)
     {
-        $itemCount = $this->protocol->read($this->size, $stream, $fieldPath . '[size]');
+        $itemCount = $this->protocol->read($this->size, $stream, $path . '[size]');
         if ($itemCount >= 0) {
             $value = [];
             for ($index = 0; $index < $itemCount; $index++) {
-                $item = $this->protocol->read($this->item, $stream, $fieldPath . "[$index]");
+                $item = $this->protocol->read($this->item, $stream, $path . "[$index]");
                 if (isset($this->key)) {
                     if (!is_object($item)) {
                         throw new InvalidArgumentException('Associative array can be applied to DTOs only');
@@ -98,7 +98,7 @@ final class ArrayOf extends AbstractType
         } elseif ($itemCount === -1 && $this->nullable) {
             $value = null;
         } else {
-            throw new InvalidArgumentException('Received negative array length: ' . $itemCount . " for {$fieldPath}");
+            throw new InvalidArgumentException('Received negative array length: ' . $itemCount . " for {$path}");
         }
 
         return $value;
@@ -107,13 +107,13 @@ final class ArrayOf extends AbstractType
     /**
      * Writes the value to the given stream
      *
-     * @param mixed           $value     Value to write
-     * @param StreamInterface $stream    Instance of stream to write to
-     * @param string          $fieldPath Path to the type to simplify debug of complex hierarchical structures
+     * @param mixed           $value  Value to write
+     * @param StreamInterface $stream Instance of stream to write to
+     * @param string          $path   Path to the item to simplify debug of complex hierarchical structures
      *
      * @return void
      */
-    public function write($value, StreamInterface $stream, string $fieldPath): void
+    public function write($value, StreamInterface $stream, string $path): void
     {
         if ($value === null && $this->nullable) {
             $itemCount = -1;
@@ -123,16 +123,16 @@ final class ArrayOf extends AbstractType
         } else {
             throw new InvalidArgumentException('Invalid value received for the array');
         }
-        $this->protocol->write($itemCount, $this->size, $stream, $fieldPath . '[size]');
+        $this->protocol->write($itemCount, $this->size, $stream, $path . '[size]');
         foreach ($value as $index => $item) {
-            $this->protocol->write($item, $this->item, $stream, $fieldPath . "[$index]");
+            $this->protocol->write($item, $this->item, $stream, $path . "[$index]");
         }
     }
 
     /**
      * Calculates the size in bytes of single item for given value
      */
-    public function getSize($value = null, string $fieldPath = ''): int
+    public function sizeOf($value = null, string $path = ''): int
     {
         if ($value === null && $this->nullable) {
             $itemCount = -1;
@@ -142,10 +142,9 @@ final class ArrayOf extends AbstractType
         } else {
             throw new InvalidArgumentException('Invalid value received for the array');
         }
-        // TODO: use type paths
-        $totalSize = $this->protocol->sizeOf($itemCount, $this->size, $fieldPath . '[size]');
+        $totalSize = $this->protocol->sizeOf($itemCount, $this->size, $path . '[size]');
         foreach ($value as $index => $item) {
-            $totalSize += $this->protocol->sizeOf($item, $this->item, $fieldPath . "[$index]");
+            $totalSize += $this->protocol->sizeOf($item, $this->item, $path . "[$index]");
         }
 
         return $totalSize;

@@ -21,14 +21,14 @@ class NullableStringTest extends TestCase
     /**
      * @var NullableString
      */
-    private $field;
+    private $type;
 
     /**
      * @inheritDoc
      */
     protected function setUp()
     {
-        $this->field = new NullableString(new BinaryProtocol(), [
+        $this->type = new NullableString(new BinaryProtocol(), [
             'size' => [Int32::class]
         ]);
     }
@@ -36,19 +36,19 @@ class NullableStringTest extends TestCase
     public function testWriteNullable(): void
     {
         $stream = new StringStream();
-        $this->field->write(null, $stream, '/');
+        $this->type->write(null, $stream, '/');
         $this->assertEquals(bin2hex("\xFF\xFF\xFF\xFF"), bin2hex($stream->getBuffer()));
     }
 
     public function testReadNullable(): void
     {
         $stream = new StringStream("\xFF\xFF\xFF\xFF");
-        $value  = $this->field->read($stream, '/');
+        $value  = $this->type->read($stream, '/');
         $this->assertEquals(null, $value);
     }
 
     public function testGetSizeForNullable(): void
     {
-        $this->assertEquals(/* INT32 Length */4, $this->field->getSize(null));
+        $this->assertEquals(/* INT32 Length */4, $this->type->sizeOf(null));
     }
 }

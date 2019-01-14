@@ -21,7 +21,7 @@ class UInt8Test extends TestCase
     /**
      * @var UInt8
      */
-    private $field;
+    private $type;
 
     /**
      * @inheritDoc
@@ -52,6 +52,6 @@ class UInt8Test extends TestCase
 
     public function testGetSize(): void
     {
-        $this->assertEquals(1, $this->field->getSize());
+        $this->assertEquals(1, $this->field->sizeOf());
     }
 }
