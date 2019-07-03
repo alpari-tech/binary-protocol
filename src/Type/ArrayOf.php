@@ -55,7 +55,7 @@ final class ArrayOf extends AbstractType
      *
      * Available options for array are following:
      *   - item array <required> Definition of item, which is used in array
-     *   - size array <optional> Definition of size type, for example Int16, Int32 or VarInt, etc..
+     *   - size int|array <optional> Definition of size type, for example Int16, Int32 or VarInt, or integer
      *   - key string <optional> Name of the type from an item object that will be used as associative key in array
      *   - nullable bool <optional> Null value is supported as size = -1
      *
@@ -80,7 +80,11 @@ final class ArrayOf extends AbstractType
      */
     public function read(StreamInterface $stream, string $path)
     {
-        $itemCount = $this->protocol->read($this->size, $stream, $path . '[size]');
+        if (is_integer($this->size)) {
+            $itemCount = $this->size;
+        } else {
+            $itemCount = $this->protocol->read($this->size, $stream, $path . '[size]');
+        }
         if ($itemCount >= 0) {
             $value = [];
             for ($index = 0; $index < $itemCount; $index++) {
@@ -123,7 +127,13 @@ final class ArrayOf extends AbstractType
         } else {
             throw new InvalidArgumentException('Invalid value received for the array');
         }
-        $this->protocol->write($itemCount, $this->size, $stream, $path . '[size]');
+        if (is_integer($this->size)) {
+            if ($this->size !== $itemCount) {
+                throw new InvalidArgumentException('Array size doesn\'t match expected array size');
+            }
+        } else {
+            $this->protocol->write($itemCount, $this->size, $stream, $path . '[size]');
+        }
         foreach ($value as $index => $item) {
             $this->protocol->write($item, $this->item, $stream, $path . "[$index]");
         }
@@ -142,7 +152,10 @@ final class ArrayOf extends AbstractType
         } else {
             throw new InvalidArgumentException('Invalid value received for the array');
         }
-        $totalSize = $this->protocol->sizeOf($itemCount, $this->size, $path . '[size]');
+        $totalSize = 0;
+        if (!is_integer($this->size)) {
+            $totalSize += $this->protocol->sizeOf($itemCount, $this->size, $path . '[size]');
+        }
         foreach ($value as $index => $item) {
             $totalSize += $this->protocol->sizeOf($item, $this->item, $path . "[$index]");
         }
