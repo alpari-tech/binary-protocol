@@ -31,9 +31,9 @@ class BinaryString extends AbstractType
     protected $envelope;
 
     /**
-     * Definition of size type
+     * Definition of size type or concrete size in bytes for fixed-size strings
      *
-     * @var array
+     * @var array|int
      */
     protected $size = [Int16BE::class];
 
@@ -47,7 +47,7 @@ class BinaryString extends AbstractType
      *
      * Available options for array are following:
      *   - envelope string <optional> Definition of nested type in the buffer
-     *   - size array <optional> Definition of size type, for example Int16, Int32 or VarInt, etc..
+     *   - size array|int <optional> Definition of size type, for example Int16, Int32 or VarInt, or just int value
      *   - nullable bool <optional> Null value is supported as string length = -1
      *
      * @inheritDoc
@@ -67,7 +67,12 @@ class BinaryString extends AbstractType
      */
     public function read(StreamInterface $stream, string $path)
     {
-        $stringLength = $this->protocol->read($this->size, $stream, $path.'[size]');
+        // If we have fixed-size, then use it as-is, do not read from the protocol
+        if (is_integer($this->size)) {
+            $stringLength = $this->size;
+        } else {
+            $stringLength = $this->protocol->read($this->size, $stream, $path.'[size]');
+        }
         if ($stringLength >= 0) {
             $value = $stream->read($stringLength);
         } elseif ($stringLength === -1 && $this->nullable) {
@@ -107,8 +112,13 @@ class BinaryString extends AbstractType
         } else {
             throw new InvalidArgumentException('Invalid value received for the string');
         }
-
-        $this->protocol->write($stringLength, $this->size, $stream, $path.'[size]');
+        if (is_integer($this->size)) {
+            if ($this->size !== $stringLength) {
+                throw new InvalidArgumentException('String buffer doesn\'t match expected buffer size');
+            }
+        } else {
+            $this->protocol->write($stringLength, $this->size, $stream, $path.'[size]');
+        }
         if ($stringLength > 0) {
             $stream->write($value);
         }
@@ -134,7 +144,10 @@ class BinaryString extends AbstractType
             throw new InvalidArgumentException('Invalid value received for the string');
         }
 
-        $totalSize  = $this->protocol->sizeOf($stringLength, $this->size, $path . '[size]');
+        $totalSize = 0;
+        if (is_array($this->size)) {
+            $totalSize .= $this->protocol->sizeOf($stringLength, $this->size, $path . '[size]');
+        }
         $totalSize += strlen($value);
 
         return $totalSize;
