@@ -74,6 +74,11 @@ final class SchemeType extends AbstractType
         if (!isset($this->scheme)) {
             $this->scheme = $className::getDefinition();
         }
+        foreach (array_keys($this->scheme) as $propertyName) {
+            if (!$this->reflection->hasProperty($propertyName)) {
+                throw new InvalidArgumentException("Class `{$className}` does not contain {$propertyName} property");
+            }
+        }
     }
 
     /**
